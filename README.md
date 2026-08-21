@@ -1,6 +1,6 @@
 # PIXOL AI
 
-Open-source decentralized AI media marketplace MVP.
+Open-source decentralized AI media marketplace.
 
 [Website](https://pixolmedia.github.io/) · [Whitepaper](https://pixolmedia.github.io/whitepaper.html) · [Telegram](https://t.me/pixol_ai) · [X](https://x.com/pixolmedia)
 
@@ -26,7 +26,7 @@ PIXOL is designed as a media-first marketplace where:
 - The PIXOL token functions as a task-payment and consumption token for image generation, video generation, editing, model utilization, and future marketplace services.
 - The inference protocol layer can be integrated behind a clean provider boundary.
 
-The current MVP runs in mock mode. It does not require real GPU nodes, blockchain settlement, production wallets, or a live decentralized protocol to run locally.
+The current application runs in mock mode for local development. It does not require real GPU nodes, blockchain settlement, production wallets, or a live decentralized protocol to run locally.
 
 ## Features
 
@@ -133,7 +133,7 @@ FRONTEND_URL=http://localhost:5173
 VITE_API_URL=http://localhost:4000
 ```
 
-The MVP works without production values because it uses mock services by default.
+The app works without production values because it uses mock services by default.
 
 ## Scripts
 
@@ -191,7 +191,7 @@ backend/src/inference/InferenceProtocolProvider.ts
 backend/src/inference/MockInferenceProtocolProvider.ts
 ```
 
-`MockInferenceProtocolProvider` powers the local MVP with realistic models, providers, prices, ratings, latency, compatibility, job progress, and generated placeholder media. A future integration can replace that boundary while preserving the marketplace API and frontend workflows.
+`MockInferenceProtocolProvider` powers local development with realistic models, providers, prices, ratings, latency, compatibility, job progress, and generated placeholder media. A future integration can replace that boundary while preserving the marketplace API and frontend workflows.
 
 ## Product Principles
 
@@ -207,9 +207,9 @@ PIXOL follows the principles stated in the whitepaper:
 
 ## Current Status
 
-This repository is an MVP and reference implementation. It is suitable for local development, interface exploration, API design, and future protocol integration work.
+This repository is a reference implementation. It is suitable for local development, interface exploration, API design, and future protocol integration work.
 
-Not included in the MVP:
+Not included in this repository:
 
 - Production wallet custody
 - Real token settlement

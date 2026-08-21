@@ -11,6 +11,6 @@ export class ComfyUIAdapter {
       throw new Error("COMFYUI_URL is not configured");
     }
 
-    throw new Error("ComfyUI integration is prepared but not enabled in the MVP");
+    throw new Error("ComfyUI integration is prepared but not enabled in mock mode");
   }
 }

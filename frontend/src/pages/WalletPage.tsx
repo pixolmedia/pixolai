@@ -8,7 +8,7 @@ export function WalletPage() {
   const { data } = useWallet();
   return (
     <div>
-      <PageTitle title="Wallet" subtitle="A Web3-ready wallet interface powered by a mock provider for MVP development." />
+      <PageTitle title="Wallet" subtitle="A Web3-ready wallet interface powered by a mock provider for local development." />
       <Card className="max-w-xl p-6">
         <Wallet className="mb-6 text-pixol" size={34} />
         <p className="text-sm font-bold uppercase text-slate-500">Wallet</p>

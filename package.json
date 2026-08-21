@@ -2,7 +2,7 @@
   "name": "pixol",
   "private": true,
   "version": "0.1.0",
-  "description": "PIXOL decentralized AI media marketplace MVP",
+  "description": "PIXOL decentralized AI media marketplace",
   "workspaces": [
     "frontend",
     "backend"
