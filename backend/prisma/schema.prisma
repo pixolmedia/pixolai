@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ModelType {
+  IMAGE
+  VIDEO
+}
+
+enum ProviderStatus {
+  online
+  degraded
+  offline
+}
+
+enum JobStatus {
+  PENDING
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  VERIFIED
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  wallets   Wallet[]
+  jobs      Job[]
+  payments  Payment[]
+  ratings   Rating[]
+}
+
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String
+  address   String   @unique
+  chain     String   @default("solana")
+  balance   Decimal  @default(0)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model ModelCreator {
+  id          String   @id @default(cuid())
+  name        String
+  website     String?
+  wallet      String?
+  description String?
+  models      Model[]
+}
+
+model Model {
+  id           String      @id
+  creatorId    String
+  name         String
+  description  String
+  type         ModelType
+  version      String
+  license      String
+  category     String
+  basePrice    Decimal
+  rating       Float       @default(0)
+  usageCount   Int         @default(0)
+  capabilities String[]
+  previews     String[]
+  creator      ModelCreator @relation(fields: [creatorId], references: [id])
+  jobs         Job[]
+  ratings      Rating[]
+  stats        ModelStats?
+}
+
+model Provider {
+  id             String         @id
+  name           String
+  status         ProviderStatus
+  reputation     Float
+  uptime         Float
+  latency        Int
+  gpu            String
+  location       String
+  models         String[]
+  successRate    Float
+  priceMultiplier Float        @default(1)
+  jobs           Job[]
+  ratings        Rating[]
+  stats          ProviderStats?
+}
+
+model Job {
+  id            String    @id
+  userId        String
+  modelId       String
+  providerId    String
+  prompt        String
+  parameters    Json
+  estimatedCost Decimal
+  actualCost    Decimal?
+  currency      String    @default("PIXOL")
+  status        JobStatus
+  progress      Int       @default(0)
+  createdAt     DateTime  @default(now())
+  startedAt     DateTime?
+  completedAt   DateTime?
+  resultUrl     String?
+  error         String?
+  user          User      @relation(fields: [userId], references: [id])
+  model         Model     @relation(fields: [modelId], references: [id])
+  provider      Provider  @relation(fields: [providerId], references: [id])
+  result        JobResult?
+  payment       Payment?
+}
+
+model JobResult {
+  id        String   @id @default(cuid())
+  jobId     String   @unique
+  url       String
+  width     Int
+  height    Int
+  mimeType  String
+  createdAt DateTime @default(now())
+  job       Job      @relation(fields: [jobId], references: [id])
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  userId    String
+  jobId     String?       @unique
+  amount    Decimal
+  currency  String        @default("PIXOL")
+  status    PaymentStatus
+  createdAt DateTime      @default(now())
+  verifiedAt DateTime?
+  user      User          @relation(fields: [userId], references: [id])
+  job       Job?          @relation(fields: [jobId], references: [id])
+}
+
+model Rating {
+  id         String   @id @default(cuid())
+  userId     String
+  modelId    String?
+  providerId String?
+  score      Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  model      Model?   @relation(fields: [modelId], references: [id])
+  provider   Provider? @relation(fields: [providerId], references: [id])
+}
+
+model ProviderStats {
+  id             String   @id @default(cuid())
+  providerId     String   @unique
+  rating         Float
+  successfulJobs Int
+  failedJobs     Int
+  averageLatency Int
+  uptime         Float
+  provider       Provider @relation(fields: [providerId], references: [id])
+}
+
+model ModelStats {
+  id                    String @id @default(cuid())
+  modelId               String @unique
+  rating                Float
+  usageCount            Int
+  successfulGenerations Int
+  model                 Model  @relation(fields: [modelId], references: [id])
+}

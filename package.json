@@ -1,0 +1,20 @@
+{
+  "name": "pixol",
+  "private": true,
+  "version": "0.1.0",
+  "description": "PIXOL decentralized AI media marketplace MVP",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace backend & npm run dev --workspace frontend",
+    "build": "npm run build --workspace backend && npm run build --workspace frontend",
+    "typecheck": "npm run typecheck --workspace backend && npm run typecheck --workspace frontend",
+    "lint": "npm run lint --workspace frontend",
+    "prisma:generate": "npm run prisma:generate --workspace backend"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
