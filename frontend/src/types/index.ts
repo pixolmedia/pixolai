@@ -24,6 +24,7 @@ export interface Model {
   type: ModelType;
   version: string;
   creator: string;
+  logoUrl?: string;
   license: string;
   category: string;
   basePrice: number;
