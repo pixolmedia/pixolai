@@ -265,12 +265,12 @@ export function CreatePage() {
           <h2 className="text-xl font-black">Offer details</h2>
           {selectedEstimateProvider && estimate.data ? (
             <div className="mt-4 space-y-3">
-              <div className="flex items-center justify-between"><span className="text-slate-400">Provider</span><span className="font-black">{selectedEstimateProvider.name}</span></div>
-              <div className="flex items-center justify-between"><span className="text-slate-400">GPU</span><span className="font-black">{selectedEstimateProvider.gpu}</span></div>
-              <div className="flex items-center justify-between"><span className="text-slate-400">Reputation</span><Rating value={selectedEstimateProvider.reputation} /></div>
-              <div className="flex items-center justify-between"><span className="text-slate-400">Score</span><Badge tone="success">{Math.round(estimate.data.score * 100)}%</Badge></div>
-              <div className="flex items-center justify-between"><span className="text-slate-400">Cost</span><span className="font-black text-pixol">{formatPixol(estimate.data.estimatedCost)}</span></div>
-              <div className="flex items-center justify-between"><span className="text-slate-400">Mode</span><span className="font-black uppercase">{executionMode}</span></div>
+              <div className="flex items-center justify-between"><span className="font-bold text-slate-700">Provider</span><span className="font-black">{selectedEstimateProvider.name}</span></div>
+              <div className="flex items-center justify-between"><span className="font-bold text-slate-700">GPU</span><span className="font-black">{selectedEstimateProvider.gpu}</span></div>
+              <div className="flex items-center justify-between"><span className="font-bold text-slate-700">Reputation</span><Rating value={selectedEstimateProvider.reputation} /></div>
+              <div className="flex items-center justify-between"><span className="font-bold text-slate-700">Score</span><Badge tone="success">{Math.round(estimate.data.score * 100)}%</Badge></div>
+              <div className="flex items-center justify-between"><span className="font-bold text-slate-700">Cost</span><span className="font-black text-pixol">{formatPixol(estimate.data.estimatedCost)}</span></div>
+              <div className="flex items-center justify-between"><span className="font-bold text-slate-700">Mode</span><span className="font-black uppercase">{executionMode}</span></div>
             </div>
           ) : <p className="mt-4 text-sm font-semibold text-slate-600">Select a model and prompt to quote an executable offer.</p>}
         </Card>
