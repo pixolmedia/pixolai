@@ -15,6 +15,8 @@ const links = [
   { to: "/settings", label: "Settings", icon: Settings }
 ];
 
+const logoUrl = `${import.meta.env.BASE_URL}pixol-logo.png`;
+
 export function Layout() {
   const [open, setOpen] = useState(false);
 
@@ -26,7 +28,7 @@ export function Layout() {
       <div className="min-h-[calc(100vh-33px)] p-0 lg:grid lg:grid-cols-[292px_1fr] lg:p-4">
       <aside className={`${open ? "block" : "hidden"} fixed inset-y-0 left-0 z-40 w-72 border-r border-white/24 bg-[#24364f]/42 p-5 shadow-[0_30px_90px_rgba(0,0,0,0.28)] backdrop-blur-[28px] lg:sticky lg:top-[calc(1rem+33px)] lg:block lg:h-[calc(100vh-2rem-33px)] lg:rounded-[28px] lg:border`}>
         <div className="mb-8 flex items-center gap-3">
-          <img className="h-14 w-14 object-contain drop-shadow-[0_0_22px_rgba(42,204,255,0.66)]" src="/pixol-logo.png" alt="PIXOL" />
+          <img className="h-14 w-14 object-contain drop-shadow-[0_0_22px_rgba(42,204,255,0.66)]" src={logoUrl} alt="PIXOL" />
           <div>
             <p className="text-3xl font-black tracking-wide text-white">PIXOL</p>
             <p className="text-xs font-bold uppercase text-sky-100/72">AI media network</p>
