@@ -82,7 +82,7 @@ export const models: Model[] = [
   {
     id: "motionforge-v",
     name: "MotionForge V",
-    description: "Video-ready model profile reserved for future decentralized video generation.",
+    description: "Video generation profile for decentralized GPU nodes and local video pipelines.",
     type: "VIDEO",
     version: "0.2",
     creatorId: "creator_motion",
@@ -97,6 +97,44 @@ export const models: Model[] = [
       "https://images.unsplash.com/photo-1535016120720-40c646be5580?auto=format&fit=crop&w=900&q=80"
     ],
     providerAvailability: ["provider_delta"]
+  },
+  {
+    id: "local-ollama-image",
+    name: "Local Ollama Image",
+    description: "Configurable local image generation endpoint for Ollama-compatible or custom adapters.",
+    type: "IMAGE",
+    version: "local",
+    creatorId: "creator_local",
+    creator: "Local Runtime",
+    license: "Local execution",
+    category: "Local",
+    basePrice: 0,
+    rating: 4.2,
+    usageCount: 0,
+    capabilities: ["Text-to-image", "Local endpoint", "Configurable runtime"],
+    previews: [
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80"
+    ],
+    providerAvailability: ["provider_local"]
+  },
+  {
+    id: "local-video",
+    name: "Local Video Pipeline",
+    description: "Configurable local video generation profile for ComfyUI, custom workers, or similar runtimes.",
+    type: "VIDEO",
+    version: "local",
+    creatorId: "creator_local",
+    creator: "Local Runtime",
+    license: "Local execution",
+    category: "Local",
+    basePrice: 0,
+    rating: 4.1,
+    usageCount: 0,
+    capabilities: ["Text-to-video", "Local endpoint", "Configurable runtime"],
+    previews: [
+      "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=900&q=80"
+    ],
+    providerAvailability: ["provider_local"]
   }
 ];
 
@@ -171,6 +209,24 @@ export const providers: Provider[] = [
       { day: "Mon", completed: 188, failed: 2, averageLatency: 520 },
       { day: "Tue", completed: 201, failed: 2, averageLatency: 500 },
       { day: "Wed", completed: 197, failed: 1, averageLatency: 510 }
+    ]
+  },
+  {
+    id: "provider_local",
+    name: "Local Runtime",
+    status: "online",
+    reputation: 4.2,
+    uptime: 100,
+    latency: 80,
+    gpu: "Local GPU / CPU",
+    location: "localhost",
+    models: ["flux-1", "sdxl", "pixol-product", "anime-arc", "motionforge-v", "local-ollama-image", "local-video"],
+    successRate: 100,
+    priceMultiplier: 0,
+    history: [
+      { day: "Mon", completed: 0, failed: 0, averageLatency: 80 },
+      { day: "Tue", completed: 0, failed: 0, averageLatency: 80 },
+      { day: "Wed", completed: 0, failed: 0, averageLatency: 80 }
     ]
   }
 ];

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { getUser } from "../auth/authPlugin.js";
+import { config } from "../config.js";
 import type { MockInferenceProtocolProvider } from "../inference/MockInferenceProtocolProvider.js";
 import type { PaymentService } from "../payments/PaymentService.js";
 import type { WalletProvider } from "../wallet/WalletProvider.js";
@@ -14,6 +15,18 @@ interface RouteDeps {
 
 export async function registerApiRoutes(app: FastifyInstance, deps: RouteDeps): Promise<void> {
   app.get("/health", async () => ({ status: "ok" }));
+
+  app.get("/api/runtime-config", async () => ({
+    solaiNetworkApiUrl: config.solaiNetworkApiUrl,
+    solaiNetworkConfigured: Boolean(config.solaiNetworkApiKey),
+    localInferenceRuntime: config.localInferenceRuntime,
+    localInferenceUrl: config.localInferenceUrl,
+    compatibleInferenceApiUrl: config.compatibleInferenceApiUrl,
+    compatibleInferenceApiConfigured: Boolean(config.compatibleInferenceApiKey),
+    comfyUiUrl: config.comfyUiUrl,
+    modes: ["local", "api", "solai", "hybrid"],
+    localRuntimes: ["ollama", "comfyui", "automatic1111", "custom"]
+  }));
 
   app.post("/api/auth/connect", async () => ({
     token: "mock-development-token",

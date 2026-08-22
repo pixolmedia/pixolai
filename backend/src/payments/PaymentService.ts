@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { JobEstimate, Payment } from "../types.js";
 import { MockWalletProvider } from "../wallet/MockWalletProvider.js";
 
@@ -12,7 +13,7 @@ export class PaymentService {
 
   async estimatePayment(estimate: JobEstimate): Promise<Payment> {
     return {
-      id: `pay_estimate_${crypto.randomUUID()}`,
+      id: `pay_estimate_${randomUUID()}`,
       amount: estimate.estimatedCost,
       currency: "PIXOL",
       status: "PENDING",
@@ -27,7 +28,7 @@ export class PaymentService {
     }
 
     const payment: Payment = {
-      id: `pay_${crypto.randomUUID()}`,
+      id: `pay_${randomUUID()}`,
       jobId,
       amount,
       currency: "PIXOL",

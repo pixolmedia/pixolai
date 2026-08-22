@@ -1,10 +1,19 @@
 export type ModelType = "IMAGE" | "VIDEO";
+export type ExecutionMode = "local" | "api" | "solai" | "hybrid";
 export type ProviderStatus = "online" | "degraded" | "offline";
 export type JobStatus = "PENDING" | "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED" | "CANCELLED";
 
 export interface GenerationParameters {
   aspectRatio: "1:1" | "4:5" | "16:9" | "9:16";
   quality: "standard" | "high" | "ultra";
+  mediaType?: ModelType;
+  executionMode?: ExecutionMode;
+  localRuntime?: "ollama" | "comfyui" | "automatic1111" | "custom";
+  localEndpoint?: string;
+  apiEndpoint?: string;
+  negativePrompt?: string;
+  frameCount?: number;
+  durationSeconds?: number;
   seed?: number;
 }
 

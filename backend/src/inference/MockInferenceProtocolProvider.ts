@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { Job, JobEstimate, JobRequest, JobResult, Model, Provider } from "../types.js";
 import { initialJobs, models, providers } from "./mockData.js";
 import { scoreProvider } from "./providerScoring.js";
@@ -41,8 +42,10 @@ export class MockInferenceProtocolProvider implements InferenceProtocolProvider 
       .map((provider) => {
         const qualityMultiplier = request.parameters.quality === "ultra" ? 2.1 : request.parameters.quality === "high" ? 1.45 : 1;
         const ratioMultiplier = ["16:9", "9:16"].includes(request.parameters.aspectRatio) ? 1.12 : 1;
-        const estimatedCost = Number((model.basePrice * provider.priceMultiplier * qualityMultiplier * ratioMultiplier).toFixed(3));
-        const estimatedTime = Math.round(8 + provider.latency / 95 + qualityMultiplier * 5);
+        const videoMultiplier = model.type === "VIDEO" || request.parameters.mediaType === "VIDEO" ? 6.5 : 1;
+        const executionMultiplier = request.parameters.executionMode === "local" ? 0 : request.parameters.executionMode === "api" ? 0.45 : request.parameters.executionMode === "hybrid" ? 0.65 : 1;
+        const estimatedCost = Number((model.basePrice * provider.priceMultiplier * qualityMultiplier * ratioMultiplier * videoMultiplier * executionMultiplier).toFixed(3));
+        const estimatedTime = Math.round((8 + provider.latency / 95 + qualityMultiplier * 5) * (videoMultiplier > 1 ? 2.4 : 1));
         const score = scoreProvider(provider, model, estimatedCost);
         return { modelId: model.id, providerId: provider.id, estimatedCost, currency: "PIXOL" as const, estimatedTime, score };
       })
@@ -60,7 +63,7 @@ export class MockInferenceProtocolProvider implements InferenceProtocolProvider 
     const estimate = await this.estimateJob(request);
     const now = new Date().toISOString();
     const job: Job = {
-      id: `job_${crypto.randomUUID()}`,
+      id: `job_${randomUUID()}`,
       userId: request.userId,
       modelId: request.modelId,
       providerId: estimate.providerId,
@@ -127,7 +130,7 @@ export class MockInferenceProtocolProvider implements InferenceProtocolProvider 
           progress: 100,
           actualCost: undefined,
           completedAt: new Date(Date.now() + 6200).toISOString(),
-          resultUrl: `https://picsum.photos/seed/${jobId}/1400/1000`
+      resultUrl: `https://picsum.photos/seed/${jobId}/1400/1000`
         }
       ]
     ];

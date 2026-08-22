@@ -17,7 +17,15 @@ const app = Fastify({
 
 await app.register(helmet);
 await app.register(cors, {
-  origin: [config.frontendUrl, "http://localhost:5173"],
+  origin: (origin, callback) => {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    const localDevOrigin = /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+):\d+$/.test(origin);
+    callback(null, origin === config.frontendUrl || localDevOrigin);
+  },
   credentials: true
 });
 await app.register(rateLimit, {

@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Loader2, MonitorCog, Network, PlugZap, Sparkles, Video } from "lucide-react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { api, type JobPayload } from "../services/api";
-import type { GenerationParameters, Job } from "../types";
+import type { ExecutionMode, GenerationParameters, Job, ModelType } from "../types";
 import { formatPixol } from "../utils/format";
 import { useModels, useProviders } from "../hooks/usePixolData";
 import { Button } from "../components/ui/Button";
@@ -11,32 +11,83 @@ import { PriceDisplay } from "../components/ui/PriceDisplay";
 import { JobStatus } from "../components/ui/JobStatus";
 import { Badge } from "../components/ui/Badge";
 import { Rating } from "../components/ui/Rating";
+import { useInferenceSettingsStore } from "../stores/inferenceSettingsStore";
 
 export function CreatePage() {
   const queryClient = useQueryClient();
   const { data: models = [] } = useModels();
   const { data: providers = [] } = useProviders();
-  const imageModels = models.filter((model) => model.type === "IMAGE");
+  const { data: runtimeConfig } = useQuery({ queryKey: ["runtime-config"], queryFn: api.runtimeConfig });
+  const inferenceSettings = useInferenceSettingsStore();
+  const [mediaType, setMediaType] = useState<ModelType>("IMAGE");
+  const [executionMode, setExecutionMode] = useState<ExecutionMode>("local");
+  const availableModels = models.filter((model) => model.type === mediaType);
   const [modelId, setModelId] = useState("flux-1");
   const [providerMode, setProviderMode] = useState<"auto" | "manual">("auto");
   const [providerId, setProviderId] = useState("");
   const [prompt, setPrompt] = useState("A premium fintech AI workspace for decentralized media generation, neon green accents, cinematic lighting");
-  const [parameters, setParameters] = useState<GenerationParameters>({ aspectRatio: "1:1", quality: "standard" });
+  const [negativePrompt, setNegativePrompt] = useState("");
+  const [parameters, setParameters] = useState<GenerationParameters>({ aspectRatio: "1:1", quality: "standard", mediaType: "IMAGE", executionMode: "local" });
   const [activeJobId, setActiveJobId] = useState<string>();
 
   const compatibleProviders = useMemo(() => providers.filter((provider) => provider.models.includes(modelId)), [providers, modelId]);
 
   useEffect(() => {
-    if (providerMode === "manual" && !providerId && compatibleProviders[0]) {
+    if (runtimeConfig) {
+      inferenceSettings.initializeFromRuntime(runtimeConfig);
+    }
+  }, [inferenceSettings, runtimeConfig]);
+
+  useEffect(() => {
+    const nextModel = availableModels.find((model) => {
+      if (executionMode === "local" || executionMode === "api") {
+        return model.providerAvailability.includes("provider_local");
+      }
+      return !model.providerAvailability.every((provider) => provider === "provider_local");
+    }) ?? availableModels[0];
+
+    const currentModel = availableModels.find((model) => model.id === modelId);
+    const mustUseLocalModel = executionMode === "local" || executionMode === "api";
+    const currentRouteMismatch = mustUseLocalModel && !currentModel?.providerAvailability.includes("provider_local");
+
+    if (nextModel && (!currentModel || currentRouteMismatch)) {
+      setModelId(nextModel.id);
+    }
+  }, [availableModels, executionMode, modelId]);
+
+  useEffect(() => {
+    if (executionMode === "local" || executionMode === "api") {
+      setProviderMode("manual");
+      setProviderId("provider_local");
+      return;
+    }
+
+    if (providerId === "provider_local") {
+      setProviderMode("auto");
+      setProviderId("");
+      return;
+    }
+
+    if (providerMode === "manual" && (!providerId || !compatibleProviders.some((provider) => provider.id === providerId)) && compatibleProviders[0]) {
       setProviderId(compatibleProviders[0].id);
     }
-  }, [compatibleProviders, providerId, providerMode]);
+  }, [compatibleProviders, executionMode, providerId, providerMode]);
 
   const payload: JobPayload = {
     modelId,
     providerId: providerMode === "manual" ? providerId : undefined,
     prompt,
-    parameters
+    parameters: {
+      ...parameters,
+      mediaType,
+      executionMode,
+      localRuntime: executionMode === "local" ? inferenceSettings.localRuntime : undefined,
+      localEndpoint: executionMode === "local" ? inferenceSettings.localEndpoint : undefined,
+      apiEndpoint: executionMode === "api" ? inferenceSettings.apiEndpoint : undefined,
+      negativePrompt: negativePrompt.trim() || undefined,
+      durationSeconds: mediaType === "VIDEO" ? parameters.durationSeconds ?? 4 : undefined,
+      frameCount: mediaType === "VIDEO" ? parameters.frameCount ?? 48 : undefined
+    }
   };
 
   const estimate = useQuery({
@@ -64,26 +115,81 @@ export function CreatePage() {
   const selectedEstimateProvider = providers.find((provider) => provider.id === estimate.data?.providerId);
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
+    <div className="glass-window rounded-[30px] p-4 lg:p-6">
+      <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
       <section>
-        <div className="mb-6">
-          <p className="text-sm font-black uppercase text-pixol">Create</p>
-          <h1 className="mt-2 text-4xl font-black tracking-tight text-white lg:text-6xl">Generate AI media through executable offers.</h1>
-          <p className="mt-4 max-w-3xl text-lg text-slate-400">Choose a model, choose an inference provider or let PIXOL auto-select the best offer, write a prompt, pay in PIXOL, and generate.</p>
+        <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-sm font-black uppercase text-sky-700">PIXOLAI</p>
+            <h1 className="mt-1 text-3xl font-black tracking-tight text-slate-950 lg:text-4xl">Compute Provider</h1>
+          </div>
+          <p className="max-w-2xl text-sm font-semibold text-slate-600 md:text-right">Local inference and API-compatible generation first. SOLAI Network stays available as the distributed execution layer.</p>
         </div>
 
         <Card className="p-5 lg:p-6">
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-black text-slate-950">Inference task</h2>
+              <p className="mt-1 text-sm font-semibold text-slate-600">Select media type, action route, model and provider separately.</p>
+            </div>
+            <Badge tone={executionMode === "local" ? "success" : "default"}>{executionMode.toUpperCase()}</Badge>
+          </div>
+
+          <div className="mb-6 grid gap-4 xl:grid-cols-[220px_1fr]">
+            <div>
+              <span className="mb-2 block text-sm font-black text-slate-700">Media</span>
+              <div className="grid grid-cols-2 gap-3">
+                <ModeButton active={mediaType === "IMAGE"} icon={<Sparkles size={18} />} label="Image" onClick={() => {
+                  setMediaType("IMAGE");
+                  setParameters((current) => ({ ...current, mediaType: "IMAGE" }));
+                }} />
+                <ModeButton active={mediaType === "VIDEO"} icon={<Video size={18} />} label="Video" onClick={() => {
+                  setMediaType("VIDEO");
+                  setParameters((current) => ({ ...current, mediaType: "VIDEO", aspectRatio: current.aspectRatio === "1:1" ? "16:9" : current.aspectRatio, durationSeconds: current.durationSeconds ?? 4, frameCount: current.frameCount ?? 48 }));
+                }} />
+              </div>
+            </div>
+
+            <div>
+              <span className="mb-2 block text-sm font-black text-slate-700">Action</span>
+              <div className="grid gap-3 md:grid-cols-3">
+                <ModeButton active={executionMode === "local"} icon={<MonitorCog size={18} />} label="Local" onClick={() => {
+                  setExecutionMode("local");
+                  setParameters((current) => ({ ...current, executionMode: "local" }));
+                }} />
+                <ModeButton active={executionMode === "api"} icon={<PlugZap size={18} />} label="API" onClick={() => {
+                  setExecutionMode("api");
+                  setParameters((current) => ({ ...current, executionMode: "api" }));
+                }} />
+                <ModeButton active={executionMode === "solai"} icon={<Network size={18} />} label="SOLAI" onClick={() => {
+                  setExecutionMode("solai");
+                  setParameters((current) => ({ ...current, executionMode: "solai" }));
+                }} />
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-5 h-px bg-white/35" />
+
+          <div className="rounded-lg border border-white/35 bg-white/12 p-4 backdrop-blur-xl">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-black text-slate-950">Provider selection</h3>
+                <p className="mt-1 text-sm font-semibold text-slate-600">Choose the model and compute provider after selecting the action route.</p>
+              </div>
+              <Badge tone="default">{executionMode === "solai" ? "NETWORK" : "RUNTIME"}</Badge>
+            </div>
+            <div className="grid gap-5 md:grid-cols-2">
             <label className="block">
-              <span className="mb-2 block text-sm font-black text-slate-300">Model</span>
-              <select className="h-12 w-full rounded-lg border border-white/10 bg-[#0b1513] px-3 font-bold text-white" value={modelId} onChange={(event) => setModelId(event.target.value)}>
-                {imageModels.map((model) => <option key={model.id} value={model.id}>{model.name}</option>)}
+              <span className="mb-2 block text-sm font-black text-slate-700">Model</span>
+              <select className="glass-field h-12 w-full rounded-lg px-3 font-bold outline-none focus:border-sky-400" value={modelId} onChange={(event) => setModelId(event.target.value)}>
+                {availableModels.map((model) => <option key={model.id} value={model.id}>{model.name}</option>)}
               </select>
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-black text-slate-300">Provider</span>
-              <select className="h-12 w-full rounded-lg border border-white/10 bg-[#0b1513] px-3 font-bold text-white" value={providerMode === "auto" ? "auto" : providerId} onChange={(event) => {
+              <span className="mb-2 block text-sm font-black text-slate-700">Provider</span>
+              <select disabled={executionMode === "local" || executionMode === "api"} className="glass-field h-12 w-full rounded-lg px-3 font-bold outline-none focus:border-sky-400 disabled:opacity-70" value={providerMode === "auto" ? "auto" : providerId} onChange={(event) => {
                 if (event.target.value === "auto") {
                   setProviderMode("auto");
                   setProviderId("");
@@ -96,17 +202,23 @@ export function CreatePage() {
                 {compatibleProviders.map((provider) => <option key={provider.id} value={provider.id}>{provider.name} · {provider.gpu}</option>)}
               </select>
             </label>
+            </div>
           </div>
 
           <label className="mt-5 block">
-            <span className="mb-2 block text-sm font-black text-slate-300">Prompt</span>
-            <textarea className="min-h-36 w-full resize-y rounded-lg border border-white/10 bg-[#0b1513] p-4 text-white outline-none focus:border-pixol/70" value={prompt} maxLength={1200} onChange={(event) => setPrompt(event.target.value)} />
+            <span className="mb-2 block text-sm font-black text-slate-700">Prompt</span>
+            <textarea className="glass-field min-h-36 w-full resize-y rounded-lg p-4 font-semibold outline-none focus:border-sky-400" value={prompt} maxLength={1200} onChange={(event) => setPrompt(event.target.value)} />
           </label>
 
-          <div className="mt-5 grid gap-5 md:grid-cols-2">
+          <label className="mt-5 block">
+            <span className="mb-2 block text-sm font-black text-slate-700">Negative prompt</span>
+            <textarea className="glass-field min-h-20 w-full resize-y rounded-lg p-4 font-semibold outline-none focus:border-sky-400" value={negativePrompt} maxLength={1000} onChange={(event) => setNegativePrompt(event.target.value)} placeholder="low quality, artifacts, distorted text" />
+          </label>
+
+          <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             <label className="block">
-              <span className="mb-2 block text-sm font-black text-slate-300">Aspect ratio</span>
-              <select className="h-12 w-full rounded-lg border border-white/10 bg-[#0b1513] px-3 font-bold text-white" value={parameters.aspectRatio} onChange={(event) => setParameters((current) => ({ ...current, aspectRatio: event.target.value as GenerationParameters["aspectRatio"] }))}>
+              <span className="mb-2 block text-sm font-black text-slate-700">Aspect ratio</span>
+              <select className="glass-field h-12 w-full rounded-lg px-3 font-bold outline-none focus:border-sky-400" value={parameters.aspectRatio} onChange={(event) => setParameters((current) => ({ ...current, aspectRatio: event.target.value as GenerationParameters["aspectRatio"] }))}>
                 <option value="1:1">1:1 Square</option>
                 <option value="4:5">4:5 Portrait</option>
                 <option value="16:9">16:9 Wide</option>
@@ -114,19 +226,31 @@ export function CreatePage() {
               </select>
             </label>
             <label className="block">
-              <span className="mb-2 block text-sm font-black text-slate-300">Quality</span>
-              <select className="h-12 w-full rounded-lg border border-white/10 bg-[#0b1513] px-3 font-bold text-white" value={parameters.quality} onChange={(event) => setParameters((current) => ({ ...current, quality: event.target.value as GenerationParameters["quality"] }))}>
+              <span className="mb-2 block text-sm font-black text-slate-700">Quality</span>
+              <select className="glass-field h-12 w-full rounded-lg px-3 font-bold outline-none focus:border-sky-400" value={parameters.quality} onChange={(event) => setParameters((current) => ({ ...current, quality: event.target.value as GenerationParameters["quality"] }))}>
                 <option value="standard">Standard</option>
                 <option value="high">High</option>
                 <option value="ultra">Ultra</option>
               </select>
             </label>
+            {mediaType === "VIDEO" ? (
+              <>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-black text-slate-700">Duration</span>
+                  <input type="number" min={1} max={30} className="glass-field h-12 w-full rounded-lg px-3 font-bold outline-none focus:border-sky-400" value={parameters.durationSeconds ?? 4} onChange={(event) => setParameters((current) => ({ ...current, durationSeconds: Number(event.target.value) }))} />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-black text-slate-700">Frames</span>
+                  <input type="number" min={1} max={240} className="glass-field h-12 w-full rounded-lg px-3 font-bold outline-none focus:border-sky-400" value={parameters.frameCount ?? 48} onChange={(event) => setParameters((current) => ({ ...current, frameCount: Number(event.target.value) }))} />
+                </label>
+              </>
+            ) : null}
           </div>
 
-          <div className="mt-6 flex flex-col gap-4 rounded-lg border border-white/10 bg-white/[0.04] p-4 md:flex-row md:items-center md:justify-between">
+          <div className="mt-6 flex flex-col gap-4 rounded-lg border border-white/45 bg-white/24 p-4 shadow-inner backdrop-blur-xl md:flex-row md:items-center md:justify-between">
             <div>
               {estimate.isLoading ? <p className="font-bold text-slate-400">Estimating offer...</p> : estimate.data ? <PriceDisplay value={estimate.data.estimatedCost} /> : <p className="font-bold text-coral">{estimate.error?.message ?? "Estimate unavailable"}</p>}
-              {estimate.data ? <p className="mt-2 text-sm text-slate-400">Estimated time ~{estimate.data.estimatedTime}s · {selectedEstimateProvider?.name}</p> : null}
+              {estimate.data ? <p className="mt-2 text-sm font-semibold text-slate-600">Estimated time ~{estimate.data.estimatedTime}s · {selectedEstimateProvider?.name} · {executionMode.toUpperCase()}</p> : null}
             </div>
             <Button disabled={!estimate.data || createJob.isPending} onClick={() => createJob.mutate()}>
               {createJob.isPending ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
@@ -146,13 +270,30 @@ export function CreatePage() {
               <div className="flex items-center justify-between"><span className="text-slate-400">Reputation</span><Rating value={selectedEstimateProvider.reputation} /></div>
               <div className="flex items-center justify-between"><span className="text-slate-400">Score</span><Badge tone="success">{Math.round(estimate.data.score * 100)}%</Badge></div>
               <div className="flex items-center justify-between"><span className="text-slate-400">Cost</span><span className="font-black text-pixol">{formatPixol(estimate.data.estimatedCost)}</span></div>
+              <div className="flex items-center justify-between"><span className="text-slate-400">Mode</span><span className="font-black uppercase">{executionMode}</span></div>
             </div>
-          ) : <p className="mt-4 text-sm text-slate-400">Select a model and prompt to quote an executable offer.</p>}
+          ) : <p className="mt-4 text-sm font-semibold text-slate-600">Select a model and prompt to quote an executable offer.</p>}
         </Card>
 
         <ProgressPanel job={activeJob.data} />
       </aside>
+      </div>
     </div>
+  );
+}
+
+function ModeButton({ active, icon, label, onClick }: { active: boolean; icon: ReactNode; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className={`flex h-12 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-black transition ${
+        active ? "border-cyan-300/90 bg-sky-500/62 text-white shadow-[0_12px_32px_rgba(59,130,246,0.28),inset_0_1px_0_rgba(255,255,255,0.36)] backdrop-blur-xl" : "border-white/42 bg-white/22 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.44)] backdrop-blur-xl hover:bg-white/36 hover:text-slate-950"
+      }`}
+      onClick={onClick}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }
 
@@ -165,9 +306,9 @@ function ProgressPanel({ job }: { job?: Job }) {
           <div className="mb-4 flex items-center justify-between"><JobStatus status={job.status} /><span className="text-sm font-black">{job.progress}%</span></div>
           <div className="h-3 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-pixol transition-all" style={{ width: `${job.progress}%` }} /></div>
           <p className="mt-4 text-sm text-slate-400">Model {job.modelId} · Provider {job.providerId}</p>
-          {job.resultUrl ? <img className="mt-4 aspect-[4/3] rounded-lg object-cover" src={job.resultUrl} alt={job.prompt} /> : <p className="mt-4 text-sm text-slate-400">Generating media in mock inference protocol mode...</p>}
+          {job.resultUrl ? <img className="mt-4 aspect-[4/3] rounded-lg object-cover" src={job.resultUrl} alt={job.prompt} /> : <p className="mt-4 text-sm text-slate-400">Generating media in {job.parameters.executionMode ?? "solai"} mock routing mode...</p>}
         </div>
-      ) : <p className="mt-4 text-sm text-slate-400">Your active generation will appear here after confirmation.</p>}
+      ) : <p className="mt-4 text-sm font-semibold text-slate-600">Your active generation will appear here after confirmation.</p>}
     </Card>
   );
 }
