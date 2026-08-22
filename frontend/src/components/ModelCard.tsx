@@ -28,21 +28,19 @@ export function ModelCard({ model }: { model: Model }) {
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
             <h3 className="text-xl font-black">{model.name}</h3>
-            <p className="text-sm font-bold text-slate-800">{model.creator} · v{model.version}</p>
+            <p className="text-sm font-semibold text-slate-600">{model.creator} · v{model.version}</p>
           </div>
           <Badge tone={model.type === "IMAGE" ? "success" : "warning"}>{model.type}</Badge>
         </div>
-        <p className="min-h-12 rounded-lg border border-white/45 bg-white/45 p-3 text-sm font-black leading-relaxed text-slate-950 shadow-inner backdrop-blur-xl">
-          {model.description}
-        </p>
+        <p className="min-h-12 text-sm font-semibold text-slate-300">{model.description}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           {model.capabilities.slice(0, 3).map((capability) => (
             <Badge key={capability}>{capability}</Badge>
           ))}
         </div>
-        <div className="mt-5 flex items-center justify-between border-t border-slate-700/15 pt-4">
+        <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
           <Rating value={model.rating} />
-          <span className="font-black text-emerald-800">From {formatPixol(model.basePrice)}</span>
+          <span className="font-black text-pixol">From {formatPixol(model.basePrice)}</span>
         </div>
       </div>
     </Card>

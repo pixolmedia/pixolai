@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 export function Badge({ children, tone = "default" }: { children: ReactNode; tone?: "default" | "success" | "warning" | "danger" }) {
   const tones = {
-    default: "bg-slate-900/8 text-slate-700",
+    default: "bg-slate-900/8 text-slate-300",
     success: "bg-emerald-400/18 text-emerald-700",
     warning: "bg-amber-400/18 text-amber-700",
     danger: "bg-coral/15 text-coral"
