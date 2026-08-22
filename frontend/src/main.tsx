@@ -15,24 +15,28 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { WalletPage } from "./pages/WalletPage";
 
 const queryClient = new QueryClient();
+const basename = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "") || "/";
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <Layout />,
-    children: [
-      { index: true, element: <CreatePage /> },
-      { path: "explore", element: <ExplorePage /> },
-      { path: "models", element: <ModelsPage /> },
-      { path: "providers", element: <ProvidersPage /> },
-      { path: "creations", element: <CreationsPage /> },
-      { path: "history", element: <HistoryPage /> },
-      { path: "dashboard", element: <DashboardPage /> },
-      { path: "wallet", element: <WalletPage /> },
-      { path: "settings", element: <SettingsPage /> }
-    ]
-  }
-]);
+const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <Layout />,
+      children: [
+        { index: true, element: <CreatePage /> },
+        { path: "explore", element: <ExplorePage /> },
+        { path: "models", element: <ModelsPage /> },
+        { path: "providers", element: <ProvidersPage /> },
+        { path: "creations", element: <CreationsPage /> },
+        { path: "history", element: <HistoryPage /> },
+        { path: "dashboard", element: <DashboardPage /> },
+        { path: "wallet", element: <WalletPage /> },
+        { path: "settings", element: <SettingsPage /> }
+      ]
+    }
+  ],
+  { basename }
+);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
