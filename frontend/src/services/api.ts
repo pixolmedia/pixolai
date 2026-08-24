@@ -217,7 +217,8 @@ function staticRequest<T>(path: string, init?: RequestInit): T {
       compatibleInferenceApiUrl: "http://localhost:8000/v1",
       compatibleInferenceApiConfigured: false,
       comfyUiUrl: "http://localhost:8188",
-      modes: ["local", "api", "solai"],
+      automatic1111Url: "http://localhost:7860",
+      modes: ["local", "api"],
       localRuntimes: ["ollama", "comfyui", "automatic1111", "custom"]
     } as T;
   }
@@ -305,6 +306,7 @@ export interface RuntimeConfig {
   compatibleInferenceApiUrl: string;
   compatibleInferenceApiConfigured: boolean;
   comfyUiUrl: string;
+  automatic1111Url: string;
   modes: string[];
   localRuntimes: string[];
 }

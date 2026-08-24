@@ -7,6 +7,7 @@ export interface InferenceProtocolProvider {
   getModel(modelId: string): Promise<Model>;
   estimateJob(request: JobRequest): Promise<JobEstimate>;
   createJob(request: JobRequest): Promise<Job>;
+  getAllJobs(): Job[];
   getJob(jobId: string): Promise<Job>;
   cancelJob(jobId: string): Promise<void>;
   getJobResult(jobId: string): Promise<JobResult>;

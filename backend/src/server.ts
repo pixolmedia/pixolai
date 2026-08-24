@@ -1,13 +1,17 @@
+import { createReadStream } from "node:fs";
+import { access } from "node:fs/promises";
+import { join } from "node:path";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import jwt from "@fastify/jwt";
 import rateLimit from "@fastify/rate-limit";
 import Fastify from "fastify";
+import { z } from "zod";
 import { ZodError } from "zod";
 import { registerApiRoutes } from "./api/routes.js";
 import { authPlugin } from "./auth/authPlugin.js";
 import { config } from "./config.js";
-import { MockInferenceProtocolProvider } from "./inference/MockInferenceProtocolProvider.js";
+import { UniversalInferenceProvider } from "./inference/UniversalInferenceProvider.js";
 import { PaymentService } from "./payments/PaymentService.js";
 import { MockWalletProvider } from "./wallet/MockWalletProvider.js";
 
@@ -15,7 +19,9 @@ const app = Fastify({
   logger: true
 });
 
-await app.register(helmet);
+await app.register(helmet, {
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+});
 await app.register(cors, {
   origin: (origin, callback) => {
     if (!origin) {
@@ -39,7 +45,7 @@ await app.register(authPlugin);
 
 const walletProvider = new MockWalletProvider();
 const paymentService = new PaymentService(walletProvider);
-const inferenceProvider = new MockInferenceProtocolProvider();
+const inferenceProvider = new UniversalInferenceProvider();
 
 app.setErrorHandler((error: Error, _request, reply) => {
   if (error instanceof ZodError) {
@@ -57,6 +63,14 @@ app.setErrorHandler((error: Error, _request, reply) => {
   });
 });
 
+app.get("/media/:fileName", async (request, reply) => {
+  const params = z.object({ fileName: z.string().regex(/^[a-zA-Z0-9_.-]+$/) }).parse(request.params);
+  const filePath = join(config.mediaStorageDir, params.fileName);
+  await access(filePath);
+  reply.type(mediaTypeForFile(params.fileName));
+  return reply.send(createReadStream(filePath));
+});
+
 await registerApiRoutes(app, { inferenceProvider, walletProvider, paymentService });
 
 try {
@@ -64,4 +78,14 @@ try {
 } catch (error) {
   app.log.error(error);
   process.exit(1);
+}
+
+function mediaTypeForFile(fileName: string): string {
+  if (fileName.endsWith(".svg")) return "image/svg+xml";
+  if (fileName.endsWith(".png")) return "image/png";
+  if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) return "image/jpeg";
+  if (fileName.endsWith(".webp")) return "image/webp";
+  if (fileName.endsWith(".webm")) return "video/webm";
+  if (fileName.endsWith(".mp4")) return "video/mp4";
+  return "application/octet-stream";
 }

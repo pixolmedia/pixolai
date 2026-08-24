@@ -8,10 +8,12 @@ export const parametersSchema = z.object({
   localRuntime: z.enum(["ollama", "comfyui", "automatic1111", "custom"]).optional(),
   localEndpoint: z.string().url().optional().or(z.literal("")),
   apiEndpoint: z.string().url().optional().or(z.literal("")),
+  apiKey: z.string().max(300).optional().or(z.literal("")),
   negativePrompt: z.string().max(1000).optional(),
   frameCount: z.number().int().min(1).max(240).optional(),
   durationSeconds: z.number().int().min(1).max(30).optional(),
-  seed: z.number().int().positive().optional()
+  seed: z.number().int().positive().optional(),
+  outputFormat: z.enum(["png", "jpeg", "webp", "mp4", "webm", "svg"]).optional()
 });
 
 export const estimateJobSchema = z.object({

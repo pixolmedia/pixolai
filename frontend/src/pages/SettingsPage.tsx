@@ -23,7 +23,7 @@ export function SettingsPage() {
           <p className="text-sm font-black uppercase text-sky-700">PIXOLAI</p>
           <h1 className="mt-1 text-3xl font-black tracking-tight text-slate-950 lg:text-4xl">Inference Settings</h1>
         </div>
-        <p className="max-w-2xl text-sm font-semibold text-slate-600 md:text-right">Configure local inference, API-compatible gateways and SOLAI Network endpoints here. Create only chooses the active route.</p>
+        <p className="max-w-2xl text-sm font-semibold text-slate-600 md:text-right">Configure local inference and API-compatible gateways here. SOLAI Network is reserved for a later provider release.</p>
       </div>
 
       <div className="grid gap-5 xl:grid-cols-2">
@@ -49,18 +49,19 @@ export function SettingsPage() {
 
         <Card className="p-5">
           <SectionHeader icon={<PlugZap size={22} />} title="API compatible" subtitle="Used when Create is set to API." />
-          <div className="mt-5">
+          <div className="mt-5 grid gap-4">
             <EndpointField label="Endpoint" value={settings.apiEndpoint} onChange={settings.setApiEndpoint} placeholder="http://localhost:8000/v1" />
+            <EndpointField label="API key" value={settings.apiKey} onChange={settings.setApiKey} placeholder="Use backend env for production" type="password" />
           </div>
           <p className="mt-3 text-sm font-semibold text-slate-600">Use this for OpenAI-compatible or custom image/video inference gateways.</p>
         </Card>
 
         <Card className="p-5">
-          <SectionHeader icon={<Network size={22} />} title="SOLAI Network" subtitle="Used when Create is set to SOLAI." />
+          <SectionHeader icon={<Network size={22} />} title="SOLAI Network" subtitle="Reserved for the next provider integration." />
           <div className="mt-5">
-            <EndpointField label="Network API URL" value={settings.solaiEndpoint} onChange={settings.setSolaiEndpoint} placeholder="https://api.solai.network" />
+            <EndpointField label="Network API URL" value={settings.solaiEndpoint} onChange={settings.setSolaiEndpoint} placeholder="https://api.solai.network" disabled />
           </div>
-          <p className="mt-3 text-sm font-semibold text-slate-600">SOLAI keys still come from SOLAI_NETWORK_API_KEY on the backend.</p>
+          <p className="mt-3 text-sm font-semibold text-slate-600">SOLAI keys and provider routing stay out of this production path for now.</p>
         </Card>
 
         <Card className="p-5">
@@ -68,8 +69,9 @@ export function SettingsPage() {
           <div className="mt-5 space-y-3 text-sm font-semibold text-slate-700">
             <ConfigLine label="Local" value={`${runtimeConfig?.localInferenceRuntime ?? "-"} · ${runtimeConfig?.localInferenceUrl ?? "-"}`} />
             <ConfigLine label="API" value={runtimeConfig?.compatibleInferenceApiUrl ?? "-"} />
-            <ConfigLine label="SOLAI" value={runtimeConfig?.solaiNetworkApiUrl ?? "-"} />
+            <ConfigLine label="SOLAI" value={runtimeConfig?.solaiNetworkConfigured ? "Configured but disabled" : "Disabled"} />
             <ConfigLine label="ComfyUI" value={runtimeConfig?.comfyUiUrl ?? "-"} />
+            <ConfigLine label="Automatic1111" value={runtimeConfig?.automatic1111Url ?? "-"} />
           </div>
         </Card>
       </div>
@@ -89,11 +91,11 @@ function SectionHeader({ icon, title, subtitle }: { icon: ReactNode; title: stri
   );
 }
 
-function EndpointField({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder: string }) {
+function EndpointField({ label, value, onChange, placeholder, type = "text", disabled = false }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; type?: string; disabled?: boolean }) {
   return (
     <label className="block">
       <span className="mb-2 block text-sm font-black text-slate-700">{label}</span>
-      <input className="glass-field h-12 w-full rounded-lg px-3 font-bold outline-none focus:border-sky-400" value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} />
+      <input type={type} disabled={disabled} className="glass-field h-12 w-full rounded-lg px-3 font-bold outline-none focus:border-sky-400 disabled:opacity-60" value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} />
     </label>
   );
 }

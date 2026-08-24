@@ -2,13 +2,13 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { getUser } from "../auth/authPlugin.js";
 import { config } from "../config.js";
-import type { MockInferenceProtocolProvider } from "../inference/MockInferenceProtocolProvider.js";
+import type { InferenceProtocolProvider } from "../inference/InferenceProtocolProvider.js";
 import type { PaymentService } from "../payments/PaymentService.js";
 import type { WalletProvider } from "../wallet/WalletProvider.js";
 import { createJobSchema, estimateJobSchema } from "./schemas.js";
 
 interface RouteDeps {
-  inferenceProvider: MockInferenceProtocolProvider;
+  inferenceProvider: InferenceProtocolProvider;
   walletProvider: WalletProvider;
   paymentService: PaymentService;
 }
@@ -24,7 +24,8 @@ export async function registerApiRoutes(app: FastifyInstance, deps: RouteDeps): 
     compatibleInferenceApiUrl: config.compatibleInferenceApiUrl,
     compatibleInferenceApiConfigured: Boolean(config.compatibleInferenceApiKey),
     comfyUiUrl: config.comfyUiUrl,
-    modes: ["local", "api", "solai", "hybrid"],
+    automatic1111Url: config.automatic1111Url,
+    modes: ["local", "api", "hybrid"],
     localRuntimes: ["ollama", "comfyui", "automatic1111", "custom"]
   }));
 

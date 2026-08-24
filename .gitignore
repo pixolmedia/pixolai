@@ -13,3 +13,5 @@ yarn-error.log*
 pnpm-debug.log*
 .vite/
 coverage/
+generated-media/
+backend/generated-media/

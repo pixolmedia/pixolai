@@ -23,7 +23,7 @@ export function Layout() {
   return (
     <div className="min-h-screen">
       <div className="sticky top-0 z-50 border-b border-cyan-200/25 bg-[#12243b]/72 px-4 py-2 text-center text-xs font-black uppercase tracking-wide text-cyan-100 shadow-[0_12px_34px_rgba(0,0,0,0.18)] backdrop-blur-2xl">
-        PIXOLAI is under construction. Features, routing and inference providers are in active development.
+        PIXOLAI production route: local runtimes and API-compatible media generation enabled. SOLAI provider reserved for next release.
       </div>
       <div className="min-h-[calc(100vh-33px)] p-0 lg:grid lg:grid-cols-[292px_1fr] lg:p-4">
       <aside className={`${open ? "block" : "hidden"} fixed inset-y-0 left-0 z-40 w-72 border-r border-white/24 bg-[#24364f]/42 p-5 shadow-[0_30px_90px_rgba(0,0,0,0.28)] backdrop-blur-[28px] lg:sticky lg:top-[calc(1rem+33px)] lg:block lg:h-[calc(100vh-2rem-33px)] lg:rounded-[28px] lg:border`}>
@@ -65,7 +65,7 @@ export function Layout() {
             <Search size={17} />
             <span>Search tasks, models, providers</span>
           </div>
-          <div className="hidden text-sm font-bold text-sky-100/72 xl:block">SOLAI routing · Local inference configurable</div>
+          <div className="hidden text-sm font-bold text-sky-100/72 xl:block">Local inference · API media gateway</div>
           <WalletButton />
         </header>
         <main className="mx-auto w-full max-w-7xl px-4 py-6 lg:px-6 lg:py-8">

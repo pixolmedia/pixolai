@@ -11,10 +11,12 @@ export interface GenerationParameters {
   localRuntime?: "ollama" | "comfyui" | "automatic1111" | "custom";
   localEndpoint?: string;
   apiEndpoint?: string;
+  apiKey?: string;
   negativePrompt?: string;
   frameCount?: number;
   durationSeconds?: number;
   seed?: number;
+  outputFormat?: "png" | "jpeg" | "webp" | "mp4" | "webm" | "svg";
 }
 
 export interface Model {
@@ -75,6 +77,7 @@ export interface Job {
   startedAt?: string;
   completedAt?: string;
   resultUrl?: string;
+  resultMimeType?: string;
   error?: string;
 }
 

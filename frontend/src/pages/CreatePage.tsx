@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, MonitorCog, Network, PlugZap, Sparkles, Video } from "lucide-react";
+import { Loader2, MonitorCog, PlugZap, Sparkles, Video } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { api, type JobPayload } from "../services/api";
 import type { ExecutionMode, GenerationParameters, Job, ModelType } from "../types";
@@ -43,7 +43,7 @@ export function CreatePage() {
       if (executionMode === "local" || executionMode === "api") {
         return model.providerAvailability.includes("provider_local");
       }
-      return !model.providerAvailability.every((provider) => provider === "provider_local");
+      return model.providerAvailability.includes("provider_local");
     }) ?? availableModels[0];
 
     const currentModel = availableModels.find((model) => model.id === modelId);
@@ -84,6 +84,7 @@ export function CreatePage() {
       localRuntime: executionMode === "local" ? inferenceSettings.localRuntime : undefined,
       localEndpoint: executionMode === "local" ? inferenceSettings.localEndpoint : undefined,
       apiEndpoint: executionMode === "api" ? inferenceSettings.apiEndpoint : undefined,
+      apiKey: executionMode === "api" ? inferenceSettings.apiKey || undefined : undefined,
       negativePrompt: negativePrompt.trim() || undefined,
       durationSeconds: mediaType === "VIDEO" ? parameters.durationSeconds ?? 4 : undefined,
       frameCount: mediaType === "VIDEO" ? parameters.frameCount ?? 48 : undefined
@@ -109,7 +110,7 @@ export function CreatePage() {
     queryKey: ["job", activeJobId],
     queryFn: () => api.job(activeJobId ?? ""),
     enabled: Boolean(activeJobId),
-    refetchInterval: (query) => (query.state.data?.status === "COMPLETED" ? false : 1000)
+    refetchInterval: (query) => (["COMPLETED", "FAILED", "CANCELLED"].includes(query.state.data?.status ?? "") ? false : 1000)
   });
 
   const selectedEstimateProvider = providers.find((provider) => provider.id === estimate.data?.providerId);
@@ -123,14 +124,14 @@ export function CreatePage() {
             <p className="text-sm font-black uppercase text-sky-700">PIXOLAI</p>
             <h1 className="mt-1 text-3xl font-black tracking-tight text-slate-950 lg:text-4xl">Compute Provider</h1>
           </div>
-          <p className="max-w-2xl text-sm font-semibold text-slate-600 md:text-right">Local inference and API-compatible generation first. SOLAI Network stays available as the distributed execution layer.</p>
+          <p className="max-w-2xl text-sm font-semibold text-slate-600 md:text-right">Production routing for local runtimes and API-compatible image/video generation. SOLAI provider is intentionally left for the next release.</p>
         </div>
 
         <Card className="p-5 lg:p-6">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div>
               <h2 className="text-2xl font-black text-slate-950">Inference task</h2>
-              <p className="mt-1 text-sm font-semibold text-slate-600">Select media type, action route, model and provider separately.</p>
+              <p className="mt-1 text-sm font-semibold text-slate-600">Select media type, execution route, model and runtime provider.</p>
             </div>
             <Badge tone={executionMode === "local" ? "success" : "default"}>{executionMode.toUpperCase()}</Badge>
           </div>
@@ -152,7 +153,7 @@ export function CreatePage() {
 
             <div>
               <span className="mb-2 block text-sm font-black text-slate-700">Action</span>
-              <div className="grid gap-3 md:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-2">
                 <ModeButton active={executionMode === "local"} icon={<MonitorCog size={18} />} label="Local" onClick={() => {
                   setExecutionMode("local");
                   setParameters((current) => ({ ...current, executionMode: "local" }));
@@ -160,10 +161,6 @@ export function CreatePage() {
                 <ModeButton active={executionMode === "api"} icon={<PlugZap size={18} />} label="API" onClick={() => {
                   setExecutionMode("api");
                   setParameters((current) => ({ ...current, executionMode: "api" }));
-                }} />
-                <ModeButton active={executionMode === "solai"} icon={<Network size={18} />} label="SOLAI" onClick={() => {
-                  setExecutionMode("solai");
-                  setParameters((current) => ({ ...current, executionMode: "solai" }));
                 }} />
               </div>
             </div>
@@ -177,7 +174,7 @@ export function CreatePage() {
                 <h3 className="text-lg font-black text-slate-950">Provider selection</h3>
                 <p className="mt-1 text-sm font-semibold text-slate-600">Choose the model and compute provider after selecting the action route.</p>
               </div>
-              <Badge tone="default">{executionMode === "solai" ? "NETWORK" : "RUNTIME"}</Badge>
+              <Badge tone="default">RUNTIME</Badge>
             </div>
             <div className="grid gap-5 md:grid-cols-2">
             <label className="block">
@@ -306,9 +303,20 @@ function ProgressPanel({ job }: { job?: Job }) {
           <div className="mb-4 flex items-center justify-between"><JobStatus status={job.status} /><span className="text-sm font-black">{job.progress}%</span></div>
           <div className="h-3 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-pixol transition-all" style={{ width: `${job.progress}%` }} /></div>
           <p className="mt-4 text-sm text-slate-400">Model {job.modelId} · Provider {job.providerId}</p>
-          {job.resultUrl ? <img className="mt-4 aspect-[4/3] rounded-lg object-cover" src={job.resultUrl} alt={job.prompt} /> : <p className="mt-4 text-sm text-slate-400">Generating media in {job.parameters.executionMode ?? "solai"} mock routing mode...</p>}
+          {job.error ? <p className="mt-4 rounded-lg border border-red-300/50 bg-red-500/10 p-3 text-sm font-semibold text-red-700">{job.error}</p> : null}
+          {job.resultUrl ? <MediaResult job={job} /> : <p className="mt-4 text-sm font-semibold text-slate-600">Generating media in {job.parameters.executionMode ?? "local"} execution mode...</p>}
         </div>
       ) : <p className="mt-4 text-sm font-semibold text-slate-600">Your active generation will appear here after confirmation.</p>}
     </Card>
   );
+}
+
+function MediaResult({ job }: { job: Job }) {
+  const isVideo = job.parameters.mediaType === "VIDEO" && !job.resultMimeType?.includes("svg");
+
+  if (isVideo) {
+    return <video className="mt-4 aspect-video w-full rounded-lg object-cover" src={job.resultUrl} controls playsInline />;
+  }
+
+  return <img className="mt-4 aspect-[4/3] w-full rounded-lg object-cover" src={job.resultUrl} alt={job.prompt} />;
 }

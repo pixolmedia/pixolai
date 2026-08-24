@@ -14,7 +14,7 @@ Instead of hiding models, GPUs, pricing, and provider reliability behind one cen
 Offer -> Model -> Inference Provider -> Price -> Reputation -> Generate
 ```
 
-This repository is the open-source application layer for that experience. It includes a React frontend, a Fastify backend, a Prisma schema, mock providers, mock wallet/payment flows, media generation jobs, marketplace views, provider scoring, gallery/history screens, and dashboard data.
+This repository is the open-source application layer for that experience. It includes a React frontend, a Fastify backend, a Prisma schema, local/API inference execution, mock wallet/payment flows, media generation jobs, marketplace views, provider scoring, gallery/history screens, and dashboard data.
 
 ## What PIXOL Is
 
@@ -26,18 +26,20 @@ PIXOL is designed as a media-first marketplace where:
 - The PIXOL token functions as a task-payment and consumption token for image generation, video generation, editing, model utilization, and future marketplace services.
 - The inference protocol layer can be integrated behind a clean provider boundary.
 
-The current application runs in mock mode for local development. It does not require real GPU nodes, blockchain settlement, production wallets, or a live decentralized protocol to run locally.
+The current application runs real local/API inference routes for media generation. SOLAI Network routing is intentionally disabled in this release and kept as a future provider integration.
 
 ## Features
 
 - Marketplace-style model and provider discovery
 - Executable offer estimation before generation
 - Automatic provider scoring based on price, reliability, latency, and compatibility
-- Mock image generation job lifecycle
+- Image and video job lifecycle with generated artifact storage
 - Job progress, cancellation, history, gallery, and dashboard APIs
 - Mock PIXOL wallet balance and payment records
 - Local-first development with optional Docker Compose services
-- Clean backend boundary for future inference protocol integrations
+- Local Ollama, Automatic1111, ComfyUI workflow and custom runtime support
+- OpenAI-compatible image/video API gateway support
+- Clean backend boundary for future SOLAI provider integration
 - Media-first UI for image and video workflows
 
 ## Tech Stack
@@ -78,7 +80,7 @@ pixolai/
     src/
       api/               HTTP routes and schemas
       auth/              Mock auth plugin
-      inference/         Inference protocol provider boundary and mock data
+      inference/         Inference provider boundary, runtime adapters and catalog data
       payments/          Payment orchestration
       wallet/            Mock wallet provider
       types.ts           Shared backend domain types
@@ -126,14 +128,30 @@ DATABASE_URL=
 REDIS_URL=
 API_PORT=4000
 JWT_SECRET=development-only-secret
-INFERENCE_PROTOCOL_API_URL=
-INFERENCE_PROTOCOL_API_KEY=
-COMFYUI_URL=
+PUBLIC_API_URL=http://localhost:4000
+LOCAL_INFERENCE_RUNTIME=ollama
+LOCAL_INFERENCE_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.1
+AUTOMATIC1111_URL=http://localhost:7860
+COMFYUI_URL=http://localhost:8188
+COMFYUI_WORKFLOW_JSON=
+COMPATIBLE_INFERENCE_API_URL=http://localhost:8000/v1
+COMPATIBLE_INFERENCE_API_KEY=
+COMPATIBLE_IMAGE_MODEL=
+COMPATIBLE_VIDEO_MODEL=
 FRONTEND_URL=http://localhost:5173
 VITE_API_URL=http://localhost:4000
 ```
 
-The app works without production values because it uses mock services by default.
+For production, keep API keys in backend environment variables. The Settings page also allows a browser-side API key for local testing against compatible gateways.
+
+Supported execution routes:
+
+- `local + ollama`: calls `/api/generate` and produces a deterministic PIXOLAI image or animated SVG from the local LLM visual plan.
+- `local + automatic1111`: calls `/sdapi/v1/txt2img` and stores the returned image.
+- `local + comfyui`: submits `COMFYUI_WORKFLOW_JSON` to `/prompt`; use a custom runtime for workflow result collection.
+- `local + custom`: calls `/generate` on your worker. Return `url`, `image_url`, `video_url`, `b64_json`, `data[0].url`, or `data[0].b64_json`.
+- `api`: calls OpenAI-compatible `/images/generations` for images and `/videos/generations` for video-capable gateways.
 
 ## Scripts
 
@@ -191,7 +209,7 @@ backend/src/inference/InferenceProtocolProvider.ts
 backend/src/inference/MockInferenceProtocolProvider.ts
 ```
 
-`MockInferenceProtocolProvider` powers local development with realistic models, providers, prices, ratings, latency, compatibility, job progress, and generated placeholder media. A future integration can replace that boundary while preserving the marketplace API and frontend workflows.
+`UniversalInferenceProvider` powers executable local and API-compatible routes while preserving the marketplace API and frontend workflows. The previous mock provider remains in the source tree as a development reference, but the server boots with the universal provider by default.
 
 ## Product Principles
 
@@ -207,15 +225,15 @@ PIXOL follows the principles stated in the whitepaper:
 
 ## Current Status
 
-This repository is a reference implementation. It is suitable for local development, interface exploration, API design, and future protocol integration work.
+This repository is a functional online platform implementation for configurable local/API image and video generation.
 
 Not included in this repository:
 
 - Production wallet custody
 - Real token settlement
-- Live decentralized provider execution
 - Production GPU scheduling
 - Real model hosting
+- SOLAI provider routing
 - Guaranteed pricing or economic returns
 
 ## Links
