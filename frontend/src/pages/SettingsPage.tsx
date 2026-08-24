@@ -23,7 +23,7 @@ export function SettingsPage() {
           <p className="text-sm font-black uppercase text-sky-700">PIXOLAI</p>
           <h1 className="mt-1 text-3xl font-black tracking-tight text-slate-950 lg:text-4xl">Inference Settings</h1>
         </div>
-        <p className="max-w-2xl text-sm font-semibold text-slate-600 md:text-right">Configure local inference and API-compatible gateways here. SOLAI Network is reserved for a later provider release.</p>
+        <p className="max-w-2xl text-sm font-semibold text-slate-600 md:text-right">Configure your own API key or local runtime. PIXOLAI runs as the interface; credentials stay in this browser.</p>
       </div>
 
       <div className="grid gap-5 xl:grid-cols-2">
@@ -48,28 +48,28 @@ export function SettingsPage() {
         </Card>
 
         <Card className="p-5">
-          <SectionHeader icon={<PlugZap size={22} />} title="API compatible" subtitle="Used when Create is set to API." />
+          <SectionHeader icon={<PlugZap size={22} />} title="API compatible" subtitle="Bring your own key for OpenAI-compatible image/video APIs." />
           <div className="mt-5 grid gap-4">
-            <EndpointField label="Endpoint" value={settings.apiEndpoint} onChange={settings.setApiEndpoint} placeholder="http://localhost:8000/v1" />
-            <EndpointField label="API key" value={settings.apiKey} onChange={settings.setApiKey} placeholder="Use backend env for production" type="password" />
+            <EndpointField label="Endpoint" value={settings.apiEndpoint} onChange={settings.setApiEndpoint} placeholder="https://api.openai.com/v1" />
+            <EndpointField label="API key" value={settings.apiKey} onChange={settings.setApiKey} placeholder="Paste your own API key" type="password" />
           </div>
-          <p className="mt-3 text-sm font-semibold text-slate-600">Use this for OpenAI-compatible or custom image/video inference gateways.</p>
+          <p className="mt-3 text-sm font-semibold text-slate-600">The key is stored locally by your browser and sent directly from your machine to the selected API.</p>
         </Card>
 
         <Card className="p-5">
-          <SectionHeader icon={<Network size={22} />} title="SOLAI Network" subtitle="Reserved for the next provider integration." />
+          <SectionHeader icon={<Network size={22} />} title="SOLAI API" subtitle="Future provider endpoint for SOLAI routing." />
           <div className="mt-5">
             <EndpointField label="Network API URL" value={settings.solaiEndpoint} onChange={settings.setSolaiEndpoint} placeholder="https://api.solai.network" disabled />
           </div>
-          <p className="mt-3 text-sm font-semibold text-slate-600">SOLAI keys and provider routing stay out of this production path for now.</p>
+          <p className="mt-3 text-sm font-semibold text-slate-600">Local and third-party API generation are production-ready now; SOLAI API plugs in later as another endpoint.</p>
         </Card>
 
         <Card className="p-5">
-          <SectionHeader icon={<Cable size={22} />} title="Backend defaults" subtitle="Current values exposed by /api/runtime-config." />
+          <SectionHeader icon={<Cable size={22} />} title="Browser defaults" subtitle="Defaults used by this frontend-only deployment." />
           <div className="mt-5 space-y-3 text-sm font-semibold text-slate-700">
             <ConfigLine label="Local" value={`${runtimeConfig?.localInferenceRuntime ?? "-"} · ${runtimeConfig?.localInferenceUrl ?? "-"}`} />
             <ConfigLine label="API" value={runtimeConfig?.compatibleInferenceApiUrl ?? "-"} />
-            <ConfigLine label="SOLAI" value={runtimeConfig?.solaiNetworkConfigured ? "Configured but disabled" : "Disabled"} />
+            <ConfigLine label="SOLAI" value="Pending SOLAI API provider" />
             <ConfigLine label="ComfyUI" value={runtimeConfig?.comfyUiUrl ?? "-"} />
             <ConfigLine label="Automatic1111" value={runtimeConfig?.automatic1111Url ?? "-"} />
           </div>

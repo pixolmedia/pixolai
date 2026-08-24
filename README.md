@@ -6,7 +6,7 @@ Open-source decentralized AI media marketplace.
 
 ## Overview
 
-PIXOL AI is a full-stack reference implementation for a decentralized AI media marketplace. The project is built around the idea described in the PIXOL whitepaper: users should be able to choose executable AI media offers that combine model access, inference capacity, price, reputation, and availability before creating images or videos.
+PIXOL AI is a production frontend interface for AI media generation and a reference backend for future provider integrations. The project is built around the idea described in the PIXOL whitepaper: users should be able to choose executable AI media routes that combine model access, inference capacity, price, reputation, and availability before creating images or videos.
 
 Instead of hiding models, GPUs, pricing, and provider reliability behind one centralized generation button, PIXOL exposes the market:
 
@@ -14,7 +14,7 @@ Instead of hiding models, GPUs, pricing, and provider reliability behind one cen
 Offer -> Model -> Inference Provider -> Price -> Reputation -> Generate
 ```
 
-This repository is the open-source application layer for that experience. It includes a React frontend, a Fastify backend, a Prisma schema, local/API inference execution, mock wallet/payment flows, media generation jobs, marketplace views, provider scoring, gallery/history screens, and dashboard data.
+This repository is the open-source application layer for that experience. It includes a React frontend, browser-side local/API inference execution, persisted user settings, media generation jobs, marketplace views, provider scoring, gallery/history screens, dashboard data, and a Fastify backend scaffold for future SOLAI/provider work.
 
 ## What PIXOL Is
 
@@ -26,20 +26,20 @@ PIXOL is designed as a media-first marketplace where:
 - The PIXOL token functions as a task-payment and consumption token for image generation, video generation, editing, model utilization, and future marketplace services.
 - The inference protocol layer can be integrated behind a clean provider boundary.
 
-The current application runs real local/API inference routes for media generation. SOLAI Network routing is intentionally disabled in this release and kept as a future provider integration.
+The deployed application is production-ready for bring-your-own API keys and local runtimes. Users paste their own API key or point PIXOLAI at their own local endpoint; credentials and job history persist in that user's browser. SOLAI API routing is the remaining provider integration planned for a later release.
 
 ## Features
 
 - Marketplace-style model and provider discovery
 - Executable offer estimation before generation
 - Automatic provider scoring based on price, reliability, latency, and compatibility
-- Image and video job lifecycle with generated artifact storage
+- Image and video job lifecycle persisted in the browser
 - Job progress, cancellation, history, gallery, and dashboard APIs
 - Mock PIXOL wallet balance and payment records
-- Local-first development with optional Docker Compose services
+- Frontend-only production deploy on GitHub Pages
 - Local Ollama, Automatic1111, ComfyUI workflow and custom runtime support
-- OpenAI-compatible image/video API gateway support
-- Clean backend boundary for future SOLAI provider integration
+- Bring-your-own-key OpenAI-compatible image/video API support
+- Backend scaffold for future SOLAI API provider integration
 - Media-first UI for image and video workflows
 
 ## Tech Stack
@@ -102,16 +102,16 @@ Install dependencies:
 npm install
 ```
 
-Run the backend and frontend together:
+Run the frontend:
 
 ```bash
-npm run dev
+npm run dev --workspace frontend
 ```
 
 Local URLs:
 
 - Frontend: `http://localhost:5173`
-- Backend: `http://localhost:4000`
+- Optional backend scaffold: `http://localhost:4000`
 
 ## Environment
 
@@ -121,7 +121,7 @@ Create a local `.env` from the example when needed:
 cp .env.example .env
 ```
 
-Common variables:
+Common variables for the optional backend scaffold:
 
 ```text
 DATABASE_URL=
@@ -143,15 +143,16 @@ FRONTEND_URL=http://localhost:5173
 VITE_API_URL=http://localhost:4000
 ```
 
-For production, keep API keys in backend environment variables. The Settings page also allows a browser-side API key for local testing against compatible gateways.
+For the production GitHub Pages app, users configure API endpoints and their own API keys in Settings. Those values are stored by the browser and sent directly from the user's machine to the selected API or local runtime.
 
 Supported execution routes:
 
-- `local + ollama`: calls `/api/generate` and produces a deterministic PIXOLAI image or animated SVG from the local LLM visual plan.
-- `local + automatic1111`: calls `/sdapi/v1/txt2img` and stores the returned image.
-- `local + comfyui`: submits `COMFYUI_WORKFLOW_JSON` to `/prompt`; use a custom runtime for workflow result collection.
-- `local + custom`: calls `/generate` on your worker. Return `url`, `image_url`, `video_url`, `b64_json`, `data[0].url`, or `data[0].b64_json`.
-- `api`: calls OpenAI-compatible `/images/generations` for images and `/videos/generations` for video-capable gateways.
+- `local + ollama`: browser calls the user's Ollama `/api/generate` endpoint and turns the response into PIXOLAI media.
+- `local + automatic1111`: browser calls the user's `/sdapi/v1/txt2img` endpoint.
+- `local + comfyui`: use a local custom bridge endpoint for workflow result collection.
+- `local + custom`: browser calls the user's `/generate` worker. Return `url`, `image_url`, `video_url`, `b64_json`, `data[0].url`, or `data[0].b64_json`.
+- `api`: browser calls the user's configured OpenAI-compatible `/images/generations` or `/videos/generations` endpoint with the user's own key.
+- `solai`: planned as another API endpoint route once the SOLAI backend API is ready.
 
 ## Scripts
 
@@ -174,7 +175,7 @@ npm run build --workspace frontend
 
 ## API Surface
 
-The backend exposes the marketplace primitives used by the frontend:
+The optional backend scaffold exposes the same marketplace primitives for future hosted-provider work:
 
 ```text
 GET  /health
@@ -202,7 +203,7 @@ GET  /api/dashboard
 
 ## Inference Protocol Boundary
 
-The backend keeps protocol execution behind `InferenceProtocolProvider`:
+The optional backend keeps protocol execution behind `InferenceProtocolProvider`:
 
 ```text
 backend/src/inference/InferenceProtocolProvider.ts
@@ -225,7 +226,7 @@ PIXOL follows the principles stated in the whitepaper:
 
 ## Current Status
 
-This repository is a functional online platform implementation for configurable local/API image and video generation.
+This repository is a functional online platform implementation for browser-based BYOK API generation and local-runtime image/video generation.
 
 Not included in this repository:
 
@@ -233,7 +234,7 @@ Not included in this repository:
 - Real token settlement
 - Production GPU scheduling
 - Real model hosting
-- SOLAI provider routing
+- SOLAI API provider routing
 - Guaranteed pricing or economic returns
 
 ## Links

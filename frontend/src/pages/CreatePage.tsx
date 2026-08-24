@@ -134,14 +134,14 @@ export function CreatePage() {
             <p className="text-sm font-black uppercase text-sky-700">PIXOLAI</p>
             <h1 className="mt-1 text-3xl font-black tracking-tight text-slate-950 lg:text-4xl">Compute Provider</h1>
           </div>
-          <p className="max-w-2xl text-sm font-semibold text-slate-600 md:text-right">Production routing for local runtimes and API-compatible image/video generation. SOLAI provider is intentionally left for the next release.</p>
+          <p className="max-w-2xl text-sm font-semibold text-slate-600 md:text-right">Use your own API key or your local machine runtime to create images and videos through PIXOLAI.</p>
         </div>
 
         <Card className="p-5 lg:p-6">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div>
               <h2 className="text-2xl font-black text-slate-950">Inference task</h2>
-              <p className="mt-1 text-sm font-semibold text-slate-600">Select media type, execution route, model and runtime provider.</p>
+              <p className="mt-1 text-sm font-semibold text-slate-600">Select media type, local/API route, model and endpoint.</p>
             </div>
             <Badge tone={executionMode === "local" ? "success" : "default"}>{executionMode.toUpperCase()}</Badge>
           </div>

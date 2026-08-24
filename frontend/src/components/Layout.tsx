@@ -23,7 +23,7 @@ export function Layout() {
   return (
     <div className="min-h-screen">
       <div className="sticky top-0 z-50 border-b border-cyan-200/25 bg-[#12243b]/72 px-4 py-2 text-center text-xs font-black uppercase tracking-wide text-cyan-100 shadow-[0_12px_34px_rgba(0,0,0,0.18)] backdrop-blur-2xl">
-        PIXOLAI production route: local runtimes and API-compatible media generation enabled. SOLAI provider reserved for next release.
+        PIXOLAI is live for bring-your-own API keys and local runtimes. SOLAI API comes next.
       </div>
       <div className="min-h-[calc(100vh-33px)] p-0 lg:grid lg:grid-cols-[292px_1fr] lg:p-4">
       <aside className={`${open ? "block" : "hidden"} fixed inset-y-0 left-0 z-40 w-72 border-r border-white/24 bg-[#24364f]/42 p-5 shadow-[0_30px_90px_rgba(0,0,0,0.28)] backdrop-blur-[28px] lg:sticky lg:top-[calc(1rem+33px)] lg:block lg:h-[calc(100vh-2rem-33px)] lg:rounded-[28px] lg:border`}>
