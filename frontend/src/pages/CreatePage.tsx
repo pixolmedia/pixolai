@@ -40,15 +40,19 @@ export function CreatePage() {
 
   useEffect(() => {
     const nextModel = availableModels.find((model) => {
-      if (executionMode === "local" || executionMode === "api") {
+      if (executionMode === "local") {
         return model.providerAvailability.includes("provider_local");
+      }
+      if (executionMode === "api") {
+        return model.providerAvailability.includes("provider_delta");
       }
       return model.providerAvailability.includes("provider_local");
     }) ?? availableModels[0];
 
     const currentModel = availableModels.find((model) => model.id === modelId);
-    const mustUseLocalModel = executionMode === "local" || executionMode === "api";
-    const currentRouteMismatch = mustUseLocalModel && !currentModel?.providerAvailability.includes("provider_local");
+    const currentRouteMismatch =
+      (executionMode === "local" && !currentModel?.providerAvailability.includes("provider_local")) ||
+      (executionMode === "api" && !currentModel?.providerAvailability.includes("provider_delta"));
 
     if (nextModel && (!currentModel || currentRouteMismatch)) {
       setModelId(nextModel.id);
@@ -56,9 +60,15 @@ export function CreatePage() {
   }, [availableModels, executionMode, modelId]);
 
   useEffect(() => {
-    if (executionMode === "local" || executionMode === "api") {
+    if (executionMode === "local") {
       setProviderMode("manual");
       setProviderId("provider_local");
+      return;
+    }
+
+    if (executionMode === "api") {
+      setProviderMode("manual");
+      setProviderId("provider_delta");
       return;
     }
 
